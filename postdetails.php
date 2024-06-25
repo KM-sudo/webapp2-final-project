@@ -105,26 +105,40 @@
             exit;
         }
 
-        // Ensure post ID is provided and valid
-        $postId = $_GET['id'] ?? null;
+        // Initialize debugging counter
+        $debugCounter = 0;
+        $debugLimit = 10;
 
-         if ($postId === null || !is_numeric($postId) || $postId > 10) {
-             echo "No post found with ID " . htmlspecialchars($postId) . "!";
-        } else {
-             $query = "SELECT * FROM `posts` WHERE id = :id";
-             $statement = $pdo->prepare($query);
-             $statement->execute([':id' => $postId]);
- 
-             $post = $statement->fetch(PDO::FETCH_ASSOC);
- 
-             if ($post) {
-                 echo '<h3>Title: ' . htmlspecialchars($post['title']) . '</h3>';
-                 echo '<p>Body: ' . htmlspecialchars($post['body']) . '</p>';
-                 
-             } else {
-                 echo "No post found with ID " . htmlspecialchars($postId) . "!";
-             }
+        // Recursive-like function for checking post details
+        function checkPostDetails($pdo, $id, &$debugCounter, $debugLimit) {
+            // Debugging output
+            if ($debugCounter < $debugLimit) {
+                echo "<pre>Post ID: " . htmlspecialchars($id) . "</pre>";
+                $debugCounter++;
+            }
+
+            if (!$id) {
+                echo "No post ID provided!";
+                return;
+            }
+
+            $query = "SELECT * FROM `posts` WHERE id = :id";
+            $statement = $pdo->prepare($query);
+            $statement->execute([':id' => $id]);
+
+            $post = $statement->fetch(PDO::FETCH_ASSOC);
+
+            if ($post) {
+                echo '<h3>Title: ' . htmlspecialchars($post['title']) . '</h3>';
+                echo '<p>Body: ' . htmlspecialchars($post['body']) . '</p>';
+            } else {
+                echo "No post found with ID $id!";
+            }
         }
+
+        // Ensure post ID is provided
+        $postId = $_GET['id'] ?? null;
+        checkPostDetails($pdo, $postId, $debugCounter, $debugLimit);
         ?>
         <form action="posts.php" method="get">
             <input type="submit" id="return" value="Return Back">
@@ -132,3 +146,4 @@
 </div>
 </body>
 </html>
+
